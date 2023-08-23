@@ -33,7 +33,7 @@ jobs:
       - name: Build dlc.dat file
         run: |
           cd code || exit 1
-          go run ./ --outputdir=../ --exportlists=tld-ru,tld-\!ru,geolocation-\ru,google,bittorrent,youtube,category-ru-news
+          go run ./ --outputdir=../ --exportlists=tld-ru,tld-\!ru,geolocation-ru,google,bittorrent,youtube,category-ru-news
           cd ../ && rm -rf code
           ls
 
@@ -64,6 +64,6 @@ jobs:
 
       - name: Release and upload assets
         run: |
-          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./tld-!ru.txt ./google.txt ./dlc.dat
+          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./tld-!ru.txt ./geolocation-ru ./google.txt ./bittorrent ./youtube ./category-ru-news ./dlc.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
