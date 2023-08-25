@@ -23,12 +23,19 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version-file: code/go.mod
-
+          
       - name: Set variables
         run: |
           echo "RELEASE_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
           echo "TAG_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
+          echo "EASYLISTCHINA_EASYLIST_REJECT_URL=https://easylist-downloads.adblockplus.org/easylist.txt" >> $GITHUB_ENV
         shell: bash
+
+      - name: update lists
+        run: |
+          cd code
+          curl -sSL $EASYLISTCHINA_EASYLIST_REJECT_URL | perl -ne '/^\|\|([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})\^$/ && print "$1\n"' | perl -ne 'print if not /^[0-9]{1,3}(\.[0-9]{1,3}){3}$/' > data/temp-reject.txt
+          cd ..
 
       - name: Build dlc.dat file
         run: |
