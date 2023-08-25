@@ -41,9 +41,8 @@ jobs:
 
       - name: Remove redundant domains
         run: |
-          cd code || exit 1
-          chmod +x findRedundantDomain.py
-          ./findRedundantDomain.py ./reject-list-with-redundant ./reject-list-deleted-unsort
+          chmod +x ./code/findRedundantDomain.py
+          ./code/findRedundantDomain.py ./reject-list-with-redundant ./reject-list-deleted-unsort
           [ ! -f "reject-list-deleted-unsort" ] && touch reject-list-deleted-unsort
           sort ./reject-list-deleted-unsort > ./reject-list-deleted-sort
           diff ./reject-list-deleted-sort ./reject-list-with-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt
