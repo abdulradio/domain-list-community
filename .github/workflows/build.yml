@@ -52,7 +52,11 @@ jobs:
           [ ! -f "reject-list-deleted-unsort" ] && touch reject-list-deleted-unsort
           sort ./reject-list-deleted-unsort > ./reject-list-deleted-sort
           diff ./reject-list-deleted-sort ./reject-list-with-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt
-
+          
+      - name: Remove domains from "need-to-remove" lists in "hidden" branch
+        run: |
+          diff ./code/reject-need-to-remove.txt ./reject-list-without-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt    
+          
       - name: Remove domains end with ".cn" in "temp-geolocation-!cn.txt" and write lists to data directory
         run: |
           cat temp-category-ads-all.txt | sort --ignore-case -u | perl -ne '/^((?=^.{1,255})[a-zA-Z0-9][-_a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-_a-zA-Z0-9]{0,62})*)/ && print "$1\n"' > ./code/data/category-ads-all
