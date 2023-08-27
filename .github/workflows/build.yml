@@ -51,7 +51,7 @@ jobs:
           ./code/findRedundantDomain.py ./reject-list-with-redundant ./reject-list-deleted-unsort
           [ ! -f "reject-list-deleted-unsort" ] && touch reject-list-deleted-unsort
           sort ./reject-list-deleted-unsort > ./reject-list-deleted-sort
-          diff ./reject-list-deleted-sort ./reject-list-with-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt
+          diff ./reject-list-deleted-sort ./reject-list-with-redundant | awk '/^>/{print $2}' > ./reject-list-without-redundant
           
       - name: Remove domains from "need-to-remove" lists in "hidden" branch
         run: |
