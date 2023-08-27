@@ -1,4 +1,4 @@
-name: Build dlc.dat
+name: Build geosite.dat
 on:
   workflow_dispatch:
   schedule:
@@ -28,12 +28,18 @@ jobs:
         run: |
           echo "RELEASE_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
           echo "TAG_NAME=$(date +%Y%m%d%H%M%S)" >> $GITHUB_ENV
-          echo "EASYLISTCHINA_EASYLIST_REJECT_URL=https://easylist-downloads.adblockplus.org/easylist.txt" >> $GITHUB_ENV
+          echo "RUADLIST_EASYLIST_REJECT_URL=https://easylist-downloads.adblockplus.org/ruadlist+easylist.txt" >> $GITHUB_ENV
+          echo "PETERLOWE_REJECT_URL=https://pgl.yoyo.org/adservers/serverlist.php?hostformat=hosts&showintro=1&mimetype=plaintext" >> $GITHUB_ENV
+          echo "ADGUARD_DNS_REJECT_URL=https://adguardteam.github.io/AdGuardSDNSFilter/Filters/filter.txt" >> $GITHUB_ENV
+          echo "DANPOLLOCK_REJECT_URL=https://someonewhocares.org/hosts/hosts" >> $GITHUB_ENV
         shell: bash
 
       - name: update lists
         run: |
-          curl -sSL $EASYLISTCHINA_EASYLIST_REJECT_URL | perl -ne '/^\|\|([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})\^$/ && print "$1\n"' | perl -ne 'print if not /^[0-9]{1,3}(\.[0-9]{1,3}){3}$/' > temp-reject.txt
+          curl -sSL $RUADLIST_EASYLIST_REJECT_URL | perl -ne '/^\|\|([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})\^$/ && print "$1\n"' | perl -ne 'print if not /^[0-9]{1,3}(\.[0-9]{1,3}){3}$/' > temp-reject.txt
+          curl -sSL $ADGUARD_DNS_REJECT_URL | perl -ne '/^\|\|([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})\^$/ && print "$1\n"' | perl -ne 'print if not /^[0-9]{1,3}(\.[0-9]{1,3}){3}$/' >> temp-reject.txt
+          curl -sSL $PETERLOWE_REJECT_URL | perl -ne '/^127\.0\.0\.1\s([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})$/ && print "$1\n"' >> temp-reject.txt
+          curl -sSL $DANPOLLOCK_REJECT_URL | perl -ne '/^127\.0\.0\.1\s([-_0-9a-zA-Z]+(\.[-_0-9a-zA-Z]+){1,64})/ && print "$1\n"' | sed '1d' >> temp-reject.txt
          
       - name: Sort and generate redundant lists
         run: |
@@ -51,26 +57,26 @@ jobs:
         run: |
           cat temp-category-ads-all.txt | sort --ignore-case -u | perl -ne '/^((?=^.{1,255})[a-zA-Z0-9][-_a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-_a-zA-Z0-9]{0,62})*)/ && print "$1\n"' > ./code/data/category-ads-all
 
-      - name: Build dlc.dat file
+      - name: Build geosite.dat file
         run: |
           cd code || exit 1
           go run ./ --outputdir=../ --exportlists=tld-ru,tld-\!ru,geolocation-ru,google,category-ads-all,bittorrent,youtube,category-ru-news
           cd ../ && rm -rf code
           ls
 
-      - name: Generate dlc.dat sha256 hash
+      - name: Generate geosite.dat sha256 hash
         run: |
-          sha256sum dlc.dat > dlc.dat.sha256sum
+          sha256sum geosite.dat > geosite.dat.sha256sum
 
       - name: Generate Zip
         run: |
-          zip -9 dlc.dat.zip dlc.dat
-          sha256sum dlc.dat.zip > dlc.dat.zip.sha256sum
+          zip -9 geosite.dat.zip geosite.dat
+          sha256sum geosite.dat.zip > geosite.dat.zip.sha256sum
 
       - name: Generate XZ
         run: |
-          xz -z -9 -k dlc.dat
-          sha256sum dlc.dat.xz > dlc.dat.xz.sha256sum
+          xz -z -9 -k geosite.dat
+          sha256sum geosite.dat.xz > geosite.dat.xz.sha256sum
 
       - name: Git push assets to "release" branch
         run: |
@@ -78,13 +84,13 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git checkout -b release
-          git add *.txt *.sha256sum dlc.dat dlc.dat.zip dlc.dat.xz
+          git add *.txt *.sha256sum geosite.dat geosite.dat.zip geosite.dat.xz
           git commit -m "${{ env.RELEASE_NAME }}"
           git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u origin release
 
       - name: Release and upload assets
         run: |
-          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./category-ads-all.txt ./dlc.dat
+          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./category-ads-all.txt ./geosite.dat
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
