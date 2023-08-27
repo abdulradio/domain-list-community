@@ -1,1 +1,2 @@
-domain:t.co
+t.co
+addthis.com
