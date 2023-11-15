@@ -95,6 +95,6 @@ jobs:
 
       - name: Release and upload assets
         run: |
-          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./category-ads-all.txt ./geosite.dat
+          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./tld-ru.txt ./category-ads-all.txt ./geosite.dat ./geosite.dat.sha256sum
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
