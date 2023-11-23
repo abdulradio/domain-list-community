@@ -57,7 +57,7 @@ jobs:
         run: |
           diff ./code/reject-need-to-remove.txt ./reject-list-without-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt    
           
-      - name: Remove domains end with ".cn" in "temp-geolocation-!cn.txt" and write lists to data directory
+      - name: Remove domains end with ".ru" in "temp-geolocation-!ru.txt" and write lists to data directory
         run: |
           cat temp-category-ads-all.txt | sort --ignore-case -u | perl -ne '/^((?=^.{1,255})[a-zA-Z0-9][-_a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-_a-zA-Z0-9]{0,62})*)/ && print "$1\n"' > ./code/data/category-ads-all
 
