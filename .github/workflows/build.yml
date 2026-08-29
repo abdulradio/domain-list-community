@@ -77,7 +77,6 @@ jobs:
           mv sing-box-*/sing-box /usr/local/bin/
           rm -rf sing-box-*
 
-      # --- Компиляция доменных категорий в .srs ---
       - name: Compile geosite-*.srs for Sing-Box
         run: |
           mkdir -p ./tmp/json_rules ./publish
@@ -87,63 +86,11 @@ jobs:
               cat_name=$(basename "$file")
               echo "Processing domain category: ${cat_name} -> geosite-${cat_name}.srs"
 
-              # Python-парсер синтаксиса geosite v2ray -> sing-box JSON Rule-Set
-              python3 -c "
-import json, sys, os
+              python3 convert.py "$file" "$cat_name"
 
-file_path = '$file'
-data_dir = './code/data'
-
-def parse_file(path):
-    suffixes, fulls, keywords, regexes = [], [], [], []
-    if not os.path.exists(path):
-        return suffixes, fulls, keywords, regexes
-        
-    with open(path, 'r', encoding='utf-8', errors='ignore') as f:
-        for line in f:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            # Игнорируем метаданные и атрибуты @
-            line = line.split('@')[0].strip()
-            
-            if line.startswith('full:'):
-                fulls.append(line[5:])
-            elif line.startswith('keyword:'):
-                keywords.append(line[8:])
-            elif line.startswith('regexp:'):
-                regexes.append(line[7:])
-            elif line.startswith('include:'):
-                inc_suffixes, inc_fulls, inc_keywords, inc_regexes = parse_file(os.path.join(data_dir, line[8:]))
-                suffixes.extend(inc_suffixes)
-                fulls.extend(inc_fulls)
-                keywords.extend(inc_keywords)
-                regexes.extend(inc_regexes)
-            elif line.startswith('domain:'):
-                suffixes.append(line[7:])
-            else:
-                suffixes.append(line)
-    return list(set(suffixes)), list(set(fulls)), list(set(keywords)), list(set(regexes))
-
-suffixes, fulls, keywords, regexes = parse_file(file_path)
-
-rule = {}
-if fulls: rule['domain'] = fulls
-if suffixes: rule['domain_suffix'] = suffixes
-if keywords: rule['domain_keyword'] = keywords
-if regexes: rule['domain_regex'] = regexes
-
-rule_set = {
-    'version': 1,
-    'rules': [rule] if rule else []
-}
-
-with open('./tmp/rule_${cat_name}.json', 'w') as out:
-    json.dump(rule_set, out)
-"
-
-              # Компилируем только если есть сформированные правила
-              sing-box rule-set compile ./tmp/rule_${cat_name}.json -o ./publish/geosite-${cat_name}.srs
+              if [ -f "./tmp/rule_${cat_name}.json" ]; then
+                sing-box rule-set compile "./tmp/rule_${cat_name}.json" -o "./publish/geosite-${cat_name}.srs"
+              fi
             fi
           done
 
@@ -178,7 +125,7 @@ with open('./tmp/rule_${cat_name}.json', 'w') as out:
           git checkout -b release
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
-          git remote add origin "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git remote add origin "https://${{ github.actor }} :${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u origin release
 
       - name: Purge jsdelivr CDN
@@ -188,7 +135,6 @@ with open('./tmp/rule_${cat_name}.json', 'w') as out:
             curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
           done
 
-      # Удаляем архивы перед GitHub Release (в релизе будут только основные файлы и .srs)
       - name: Remove extra archives before Release upload
         run: rm -rf ./publish/*.zip* ./publish/*.xz*
 
