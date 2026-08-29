@@ -86,7 +86,8 @@ jobs:
               cat_name=$(basename "$file")
               echo "Processing domain category: ${cat_name} -> geosite-${cat_name}.srs"
 
-              python3 convert.py "$file" "$cat_name"
+              # Обратите внимание на ./code/convert.py
+              python3 ./code/convert.py "$file" "$cat_name"
 
               if [ -f "./tmp/rule_${cat_name}.json" ]; then
                 sing-box rule-set compile "./tmp/rule_${cat_name}.json" -o "./publish/geosite-${cat_name}.srs"
