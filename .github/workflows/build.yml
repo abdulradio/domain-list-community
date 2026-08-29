@@ -59,7 +59,7 @@ jobs:
 
       - name: Remove domains from "need-to-remove" lists
         run: |
-          diff ./code/reject-need-to-remove.txt ./reject-list-without-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt    
+          diff ./code/reject-need-to-remove.txt ./reject-list-without-redundant | awk '/^>/{print $2}' > temp-category-ads-all.txt
 
       - name: Write lists to data directory
         run: |
@@ -86,7 +86,6 @@ jobs:
               cat_name=$(basename "$file")
               echo "Processing domain category: ${cat_name} -> geosite-${cat_name}.srs"
 
-              # Обратите внимание на ./code/convert.py
               python3 ./code/convert.py "$file" "$cat_name"
 
               if [ -f "./tmp/rule_${cat_name}.json" ]; then
@@ -94,10 +93,6 @@ jobs:
               fi
             fi
           done
-
-      - name: Clean up working directory before publication
-        run: |
-          rm -rf code
 
       - name: Generate geosite.dat sha256 hash
         run: |
@@ -141,6 +136,11 @@ jobs:
 
       - name: Release and upload assets
         run: |
-          gh release create ${{ env.TAG_NAME }} --generate-notes --latest --title ${{ env.RELEASE_NAME }} ./publish/*
+          gh release create ${{ env.TAG_NAME }} \
+            --generate-notes \
+            --latest \
+            --title "${{ env.RELEASE_NAME }}" \
+            --repo "${{ github.repository }}" \
+            ./publish/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
