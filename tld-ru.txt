@@ -1,0 +1,6 @@
+domain:ru
+domain:rf
+domain:su
+domain:xn--p1ai
+domain:moscow
+domain:tatar
